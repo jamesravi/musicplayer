@@ -84,11 +84,11 @@ for song in sorted(db, key=lambda k: k["timestamp"]):
     name, timeranges = song["song"], song["timeranges"]
     if os.path.isfile(music_path+"\\"+name):
         totallength = getlength(name)
-        if totallength is not None:
+        if totallength is not None and totallength > 30:
             if name not in songs:
                 songs[name] = [0, 0]
             totalplayed = sum([arange[1]-arange[0] for arange in timeranges])
-            if (totallength > 30) and (((totalplayed/totallength) >= 0.5) or (totalplayed > (60*4))):
+            if ((totalplayed/totallength) >= 0.5) or (totalplayed > (60*4)):
                 songs[name][0] += 1
             else:
                 songs[name][1] += 1
