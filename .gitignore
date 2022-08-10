@@ -1,2 +1,2 @@
-databases
+*.json
 __pycache__/

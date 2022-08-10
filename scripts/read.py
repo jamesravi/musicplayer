@@ -3,14 +3,14 @@
 
 from tinydb import TinyDB
 from mutagen.mp3 import MP3
+from pathlib import Path
 import mutagen
-import os
 
 import sys
 sys.path.append("..")
 from get_music_path import get_music_path
 
-music_path = str(get_music_path())
+music_path = get_music_path()
 
 lengths = {}
 
@@ -18,20 +18,20 @@ def getlength(name):
     if name in lengths:
         return lengths[name]
     try:
-        totallength = MP3(music_path+"\\"+name).info.length
+        totallength = MP3(music_path / name).info.length
     except mutagen.MutagenError:
         totallength = None
     lengths[name] = totallength
     return totallength
 
-db = TinyDB("..\\databases\\db.json")
+db = TinyDB(Path.cwd().parent / "databases" / "db.json")
 
 ###
 
 songs = {}
 for song in sorted(db, key=lambda k: k["timestamp"]):
     name, timeranges = song["song"], song["timeranges"]
-    if os.path.isfile(music_path+"\\"+name):
+    if (music_path / name).is_file():
         if name not in songs:
             songs[name] = []
         for arange in timeranges:
@@ -54,7 +54,7 @@ print()
 songs = {}
 for song in sorted(db, key=lambda k: k["timestamp"]):
     name, timeranges = song["song"], song["timeranges"]
-    if os.path.isfile(music_path+"\\"+name):
+    if (music_path / name).is_file():
         if name not in songs:
             songs[name] = 0
         for arange in timeranges:
@@ -82,7 +82,7 @@ A track should only be scrobbled when the following conditions have been met:
 songs = {}
 for song in sorted(db, key=lambda k: k["timestamp"]):
     name, timeranges = song["song"], song["timeranges"]
-    if os.path.isfile(music_path+"\\"+name):
+    if (music_path / name).is_file():
         totallength = getlength(name)
         if totallength is not None and totallength > 30:
             if name not in songs:

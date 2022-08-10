@@ -1,3 +1,5 @@
-Licensed under AGPLv3 or later, except for get_music_path.py and scripts\combine.py, which are licensed under GPLv3 or later.
+Licensed under AGPLv3 or later, except for:
+- get_music_path.py, which is licensed under CC0 1.0
+- scripts\combine.py, which is licensed under GPLv3 or later
 
 The file "loading.gif" is licensed CC-BY-SA 4.0 by Wikimedia Commons users Ahm masum and Skorp24 (https://commons.wikimedia.org/wiki/File:Loading_icon_cropped.gif)

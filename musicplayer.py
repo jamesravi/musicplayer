@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Copyright (C) 2022 James Ravindran
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -8,12 +10,13 @@ from tinydb import TinyDB
 from PIL import Image
 import webbrowser
 from get_music_path import get_music_path
+from pathlib import Path
 
 app = Flask(__name__)
 basepath = get_music_path()
 songscache = [song.name for song in basepath.glob("*.mp3")]
 random.shuffle(songscache)
-db = TinyDB("databases\\db.json")
+db = TinyDB(Path("databases") / "db.json")
 
 # https://stackoverflow.com/a/312464
 def chunks(lst, n):
