@@ -3,133 +3,37 @@ Copyright (C) 2022 James Ravindran
 SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 
-<style>
-a:visited {
-	color: blue;
-}
-
-table {
-	table-layout: fixed;
-	width: 100%;
-}
-
-tr {
-	width: 25%;
-	vertical-align: top;
-}
-
-div {
-	text-align: center;
-}
-
-img {
-	width:100%;
-}
-
-button {
-	width: 15%;
-	height: 10%;
-}
-
-audio {
-	width: 100%;
-}
-</style>
-
-<script>
-function httpGetAsync(theUrl, callback) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            callback(xmlHttp.responseText);
-		}
-    }
-    xmlHttp.open("GET", theUrl, true); 
-    xmlHttp.send(null);
-}
-
-function getTimeRanges() {
-	var timeranges = audio.played;
-	var result = [];
-	for (var i = 0; i < timeranges.length; i++) {
-		result.push(timeranges.start(i)+"-"+timeranges.end(i));
-	}
-	return result.join();
-}
-
-function _loadSong(song) {
-	source.src = "getsong/" + song.trim();
-	audio.load();
-	audio.play();
-}
-
-function sendTimeRanges(callback) {
-	httpGetAsync("/sendtimeranges/" + source.src.split("/")[source.src.split("/").length - 1] + "/" + getTimeRanges(), callback);
-}
-
-function loadSong(song) {
-	if (playedyet) {
-		sendTimeRanges(function(res) {
-			_loadSong(song)
-		});
-	} else {
-		_loadSong(song)
-		playedyet = true;
-	}
-}
-
-function loadRandomSong() {
-	httpGetAsync("/getrandomsong", function(res) {
-		loadSong(res);
-	});
-}
-
-function processSong(e) {
-	loadSong(e.innerText);
-}
-
-window.onload = function() {
-	audio = document.getElementsByTagName("audio")[0];
-	source = document.getElementsByTagName("source")[0];
-	audio.onended = function() {
-		loadRandomSong();
-	}
-	//loadRandomSong();
-	Array.from(document.getElementsByTagName("img")).forEach(function(e) {
-		e.src = "/getalbumart/" + e.parentElement.getElementsByTagName("div")[0].innerText + "/" + window.innerWidth/4
-	});
-	playedyet = false;
-}
-
-window.onbeforeunload = function (e) {
-	if (playedyet) {
-		sendTimeRanges(null);
-	}
-}
-</script>
-
-<audio controls>
-	<source src=""></source>
-</audio>
-
-<button onclick="loadRandomSong()">Next song</button>
-
-<table>
-	{% for chunk in songs %}
-	<tr>
-		{% for song in chunk %}
-			<td onclick="processSong(this); console.log(this); console.log(Date());">
-				<img src="/loading.gif"></img>
-				<div>{{song}}</div>
-				</br>
-			</td>
-		{% endfor %}
-	</tr>
-	{% endfor %}
-</table> 
-
-<ul>
-{% for song in songs %}
-    <li><a href="#" onclick="processSong(this)">{{song}}</a></li>
-{% endfor %}
-<ul>
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+		<script src="{{url_for('static', filename='index.js')}}"></script>
+	</head>
+	<body>
+		<audio controls>
+			<source src=""></source>
+		</audio>
+		<p id="currentsong"></p>
+		<div id="nextsong">
+			<button onclick="loadRandomSong()">Next song</button>
+		</div>
+		<table>
+			{% for chunk in songs %}
+			<tr>
+				{% for song in chunk %}
+					<td class="cell" onclick="processSong(this);" data-song='{{ song }}'>
+						<img src="{{url_for('static', filename='loading.gif')}}"></img>
+						<div class="songcaption">{{ getsongname(song) }}</div>
+						</br>
+					</td>
+				{% endfor %}
+			</tr>
+			{% endfor %}
+		</table>
+		<ul>
+			{% for song in songs %}
+				<li><a href="#" onclick="processSong(this)">{{song}}</a></li>
+			{% endfor %}
+		<ul>
+	</body>
+</html>

@@ -1,0 +1,41 @@
+/* Copyright (C) 2022 James Ravindran */
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+
+a:visited {
+	color: blue;
+}
+
+table {
+	table-layout: fixed;
+	width: 100%;
+}
+
+tr {
+	width: 25%;
+}
+
+#nextsong {
+	text-align: left;
+	padding-bottom: 10px;
+}
+
+.songcaption {
+	text-align: center;
+}
+
+#currentsong {
+	text-align: left;
+}
+
+img {
+	width: 100%;
+}
+
+button {
+	width: 15%;
+	height: 4em;
+}
+
+audio {
+	width: 100%;
+}

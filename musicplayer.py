@@ -84,7 +84,7 @@ def getalbumart(song, width):
             albumart = File(song).tags[key].data
             break
     if not albumart:
-        raise Exception(thefile.keys())
+        raise Exception(song, thefile.keys())
     albumart = Image.open(io.BytesIO(albumart))
     albumart.thumbnail((width, width), Image.ANTIALIAS)
     albumartresult = io.BytesIO()
@@ -92,9 +92,16 @@ def getalbumart(song, width):
     albumartresult.seek(0)
     return send_file(albumartresult, mimetype="image/jpeg", last_modified=modifiedtime)
 
-@app.route("/loading.gif")
-def loading():
-    return send_file("loading.gif")
+@app.route("/getsongname/<song>")
+def getsongname(song):
+    song = basepath / song
+    thefile = File(song).tags
+    songname = " ".join(thefile["TIT2"].text)
+    if "TPE1" in thefile:
+        songname += " - " + " ".join(thefile["TPE1"].text)
+    return songname
+
+app.jinja_env.globals.update(getsongname=getsongname)
 
 webbrowser.open("http://localhost:20000")
 app.run(host="127.0.0.1", port=20000)#, debug=True)
