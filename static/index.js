@@ -36,7 +36,7 @@ function sendTimeRanges(callback) {
 }
 
 function loadSong(song) {
-	if (playedyet) {
+	if (playedyet && document.getElementById("sendplayedranges").checked) {
 		sendTimeRanges(function(res) {
 			_loadSong(song)
 		});
@@ -72,7 +72,7 @@ window.onload = function() {
 }
 
 window.onbeforeunload = function (e) {
-	if (playedyet) {
+	if (playedyet && document.getElementById("sendplayedranges").checked) {
 		sendTimeRanges(null);
 	}
 }

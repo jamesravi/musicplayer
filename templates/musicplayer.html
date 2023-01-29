@@ -15,8 +15,13 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 		</audio>
 		<p id="currentsong"></p>
 		<div id="nextsong">
-			<button onclick="loadRandomSong()">Next song</button>
+			<button onclick="loadRandomSong(true)">Next song</button>
 		</div>
+		<div>
+			<input type="checkbox" id="sendplayedranges" name="sendplayedranges" checked>
+			<label for="sendplayedranges">Send played ranges</label>
+		</div>
+		</br>
 		<table>
 			{% for chunk in songs %}
 			<tr>

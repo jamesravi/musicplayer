@@ -19,5 +19,4 @@ allitems = sorted(map(lambda x: json.loads(x), allitems), key=lambda x: x["times
 if os.path.isfile(root / "dball.json"):
     os.remove(root / "dball.json")
 dball = TinyDB(root / "dball.json")
-for item in tqdm(allitems):
-    dball.insert(item)
+dball.insert_multiple(allitems)

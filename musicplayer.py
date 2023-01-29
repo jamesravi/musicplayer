@@ -13,6 +13,7 @@ from get_music_path import get_music_path
 from pathlib import Path
 
 app = Flask(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 basepath = get_music_path()
 songscache = [song.name for song in basepath.glob("*.mp3")]
 random.shuffle(songscache)
