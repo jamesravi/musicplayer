@@ -3,20 +3,21 @@
 # Copyright (C) 2022 James Ravindran
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+import random, io, os, time, math
+from pathlib import Path
+import webbrowser
+
 from flask import Flask, render_template, send_file
 from mutagen import File
-import random, io, os, time
 from tinydb import TinyDB
 from PIL import Image
-import webbrowser
+
 from get_music_path import get_music_path
-from pathlib import Path
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 basepath = get_music_path()
-songscache = [song.name for song in basepath.glob("*.mp3")]
-random.shuffle(songscache)
+songscache = []
 db = TinyDB(Path("databases") / "db.json")
 
 # https://stackoverflow.com/a/312464
@@ -45,16 +46,21 @@ def getrandomsong():
             if song in songscache:
                 songscache.remove(song)
             songscache.append(song)
+        songscache.reverse() # So oldest played songs are more likely to be played
 
-        allofthem = list(basepath.glob("*.mp3"))
+        allofthem = [song.name for song in basepath.glob("*.mp3")]
         random.shuffle(allofthem)
 
+        # Add new unplayed songs to end of cache
         for song in allofthem:
-            if song.name not in songscache:
-                songscache.append(song.name)
-        songscache.reverse()
+            if song not in songscache:
+                songscache.append(song)
 
-    result = random.choices(population=songscache, weights=range(len(songscache)), k=1)[0]
+        # Remove songs from cache if they no longer exist
+        songscache[:] = [song for song in songscache if song in allofthem]
+
+    weights = list(map(math.sqrt, range(len(songscache))))
+    result = random.choices(population=songscache, weights=weights, k=1)[0]
     songscache.remove(result)      
     return result
 
