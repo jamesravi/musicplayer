@@ -6,9 +6,10 @@
 import random, io, os, time, math
 from pathlib import Path
 import webbrowser
+import base64
 
 from flask import Flask, render_template, send_file
-from mutagen import File
+import mutagen
 from tinydb import TinyDB
 from PIL import Image
 
@@ -19,6 +20,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 basepath = get_music_path()
 songscache = []
 db = TinyDB(Path("databases") / "db.json")
+exts = ["*.mp3", "*.opus"]
 
 # https://stackoverflow.com/a/312464
 def chunks(lst, n):
@@ -28,11 +30,9 @@ def chunks(lst, n):
 
 @app.route("/")
 def homepage():
-    for song in basepath.glob("*.mp3"):
-        newsong = " ".join(str(song).split())
-        if song != newsong:
-            os.rename(song, newsong)
-    songs = [song.name for song in basepath.glob("*.mp3")]
+    songs = []
+    for filetype in exts:
+        songs.extend([song.name for song in basepath.glob(filetype)])
     random.shuffle(songs)
     return render_template("musicplayer.html", songs=chunks(songs, 4))
 
@@ -48,7 +48,9 @@ def getrandomsong():
             songscache.append(song)
         songscache.reverse() # So oldest played songs are more likely to be played
 
-        allofthem = [song.name for song in basepath.glob("*.mp3")]
+        allofthem = []
+        for filetype in exts:
+            allofthem.extend([song.name for song in basepath.glob(filetype)])
         random.shuffle(allofthem)
 
         # Add new unplayed songs to end of cache
@@ -84,14 +86,29 @@ def getalbumart(song, width):
     width = int(width)
     song = basepath / song
     modifiedtime = os.path.getmtime(song)
-    thefile = File(song).tags
+    thefile = mutagen.File(song).tags
     albumart = None
-    for key in thefile.keys():
-        if "APIC" in key:
-            albumart = File(song).tags[key].data
-            break
+    
+    if type(thefile) == mutagen.oggopus.OggOpusVComment:
+        assert len(thefile["metadata_block_picture"]) == 1
+        try:
+            albumart = mutagen.flac.Picture(base64.b64decode(thefile["metadata_block_picture"][0]))
+        except (binascii.Error, mutagen.flac.error) as e:
+            print("WARNING: Failed to get album art for", song)
+    elif type(thefile) == mutagen.id3.ID3:
+        for key in thefile.keys():
+            if "APIC" in key:
+                albumart = thefile[key]
+                break
+    else:
+        # Unknown extension
+        raise Exception(str(song) + " " + str(type(thefile)))
+            
     if not albumart:
         raise Exception(song, thefile.keys())
+    else:
+        mime = albumart.mime
+        albumart = albumart.data
     albumart = Image.open(io.BytesIO(albumart))
     albumart.thumbnail((width, width), Image.ANTIALIAS)
     albumartresult = io.BytesIO()
@@ -102,10 +119,16 @@ def getalbumart(song, width):
 @app.route("/getsongname/<song>")
 def getsongname(song):
     song = basepath / song
-    thefile = File(song).tags
-    songname = " ".join(thefile["TIT2"].text)
-    if "TPE1" in thefile:
-        songname += " - " + " ".join(thefile["TPE1"].text)
+    thefile = mutagen.File(song).tags
+    if type(thefile) == mutagen.oggopus.OggOpusVComment:
+        songname = thefile["title"][0] + " - " + thefile["artist"][0]
+    elif type(thefile) == mutagen.id3.ID3:
+        songname = " ".join(thefile["TIT2"].text)
+        if "TPE1" in thefile:
+            songname += " - " + " ".join(thefile["TPE1"].text)
+    else:
+        # Unknown extension
+        raise Exception(str(song) + " " + str(type(thefile)))
     return songname
 
 app.jinja_env.globals.update(getsongname=getsongname)
