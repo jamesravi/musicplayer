@@ -1,6 +1,8 @@
 # musicplayer
 Barebones music player (web GUI) with a more human-friendly random shuffle and that logs play history.
 
+![Screenshot](./screenshot.png)
+
 ## How to run
 1. Install the dependencies (which can be done using `pip install -r requirements.txt`)
 2. Run musicplayer.py, your web browser should open automatically.
